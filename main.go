@@ -1,3 +1,14 @@
+// Recipes API
+
+// Schemes: http
+// Host: localhost:8080
+// BasePath: /
+// Version 0.0.1
+// Consumes:
+// - application/json
+// Produces
+// - application/json
+// swagger:meta
 package main
 
 import (
@@ -39,6 +50,15 @@ func NewRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipe)
 }
 
+// swagger:operation GET /recipes recipes listRecipes
+// Returns list of recipes
+// ---
+// produces:
+// - application/json
+// responses:
+//
+//	'200':
+//	    description: Successful operation
 func ListRecipesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipes)
 }
