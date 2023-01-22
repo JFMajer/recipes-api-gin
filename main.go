@@ -31,12 +31,14 @@ var err error
 var client *mongo.Client
 
 var recipesHandler *handlers.RecipesHandler
+var authHandler *handlers.AuthHandler
 
 func main() {
 	router := gin.Default()
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
+	router.POST("/signin", authHandler.SignInHandler)
 	authorized := router.Group("/")
-	authorized.Use(AuthMiddleware())
+	authorized.Use(authHandler.AuthMiddleware())
 	{
 		authorized.POST("/recipes", recipesHandler.NewRecipeHandler)
 		authorized.GET("/recipes/:id", recipesHandler.GetRecipeHandler)
@@ -45,22 +47,6 @@ func main() {
 		authorized.GET("/recipes/search", recipesHandler.SearchRecipesHandler)
 	}
 	router.Run(":8080")
-}
-
-// AuthMiddleware is a middleware that checks for a valid api key
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		apiKey := c.Request.Header.Get("X-API-KEY")
-		log.Printf("API Key: %s", apiKey)
-		if apiKey != "secret123" {
-			c.JSON(401, gin.H{
-				"error": "Invalid API Key",
-			})
-			c.Abort()
-			return
-		}
-		c.Next()
-	}
 }
 
 func init() {
@@ -81,4 +67,5 @@ func init() {
 	fmt.Println(status)
 
 	recipesHandler = handlers.NewRecipesHandler(ctx, collection, redisClient)
+	authHandler = &handlers.AuthHandler{}
 }
