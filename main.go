@@ -36,6 +36,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/recipes", recipesHandler.NewRecipeHandler)
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
+	router.GET("/recipes/:id", recipesHandler.GetRecipeHandler)
 	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
 	router.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
 	router.GET("/recipes/search", recipesHandler.SearchRecipesHandler)
@@ -50,7 +51,6 @@ func init() {
 	}
 	log.Println("Connected to MongoDB")
 	collection := client.Database("demo").Collection("recipes")
-	recipesHandler = handlers.NewRecipesHandler(ctx, collection)
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
@@ -59,4 +59,6 @@ func init() {
 	})
 	status := redisClient.Ping()
 	fmt.Println(status)
+
+	recipesHandler = handlers.NewRecipesHandler(ctx, collection, redisClient)
 }
