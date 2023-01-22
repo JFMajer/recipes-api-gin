@@ -34,13 +34,33 @@ var recipesHandler *handlers.RecipesHandler
 
 func main() {
 	router := gin.Default()
-	router.POST("/recipes", recipesHandler.NewRecipeHandler)
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
-	router.GET("/recipes/:id", recipesHandler.GetRecipeHandler)
-	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
-	router.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
-	router.GET("/recipes/search", recipesHandler.SearchRecipesHandler)
+	authorized := router.Group("/")
+	authorized.Use(AuthMiddleware())
+	{
+		authorized.POST("/recipes", recipesHandler.NewRecipeHandler)
+		authorized.GET("/recipes/:id", recipesHandler.GetRecipeHandler)
+		authorized.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
+		authorized.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
+		authorized.GET("/recipes/search", recipesHandler.SearchRecipesHandler)
+	}
 	router.Run(":8080")
+}
+
+// AuthMiddleware is a middleware that checks for a valid api key
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		apiKey := c.Request.Header.Get("X-API-KEY")
+		log.Printf("API Key: %s", apiKey)
+		if apiKey != "secret123" {
+			c.JSON(401, gin.H{
+				"error": "Invalid API Key",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
 }
 
 func init() {
